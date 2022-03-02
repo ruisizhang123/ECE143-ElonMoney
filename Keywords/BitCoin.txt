@@ -1,0 +1,11 @@
+bitcoin
+centralized
+hashing
+energy usage
+latency
+bandwidth
+crypto
+cryptocurrencies
+cryptocurrency
+miner
+Web3
