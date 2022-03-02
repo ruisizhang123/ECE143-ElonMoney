@@ -1,6 +1,0 @@
-etherum
-transaction
-crypto
-cryptocurrencies
-cryptocurrency
-Web3
