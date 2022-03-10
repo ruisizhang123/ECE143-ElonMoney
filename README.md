@@ -33,7 +33,7 @@ python3 ml.py
 * Visualization: ./Data_visualization/Data_plot.ipynb
 * DataSet: ./data/newstock111.csv
 * machine learning module: ./ml.py
-* data preprocess: ./write crypto.py | ./write stock.py
+* data preprocess: ./write\_crypto.py | ./write\_stock.py
 
 #### Team Member
 
