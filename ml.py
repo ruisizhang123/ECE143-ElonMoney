@@ -5,26 +5,51 @@ import torch.nn as nn
 
 input_dim = 6
 hidden_dim = 16
-num_layers = 3
+num_layers = 2
 output_dim = 3
-num_epochs = 100
+num_epochs = 2000
 
 ### Define LSTM model
 class LSTM(nn.Module):
-    def __init__(self, input_dim, hidden_dim, num_layers, output_dim):
+    def __init__(self, input_dim, hidden_dim, n_lyrs = 1, do = .05, device = "cpu"):
         super(LSTM, self).__init__()
+
+        self.ip_dim = input_dim
         self.hidden_dim = hidden_dim
-        self.num_layers = num_layers
+        self.n_layers = n_lyrs
+        self.dropout = do
+        self.device = device
+
+        self.rnn = nn.LSTM(input_size = input_dim, hidden_size = hidden_dim, num_layers = n_lyrs, dropout = do)
+        self.fc1 = nn.Linear(in_features = hidden_dim, out_features = int(hidden_dim / 2))
+        self.act1 = nn.ReLU(inplace = True)
+        self.bn1 = nn.BatchNorm1d(num_features = int(hidden_dim / 2))
+
+        self.estimator = nn.Linear(in_features = int(hidden_dim / 2), out_features = 3)
         
-        self.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_dim, output_dim)
-    def forward(self, x):
-        x = x.view(len(x), 1, -1)
-        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_dim).requires_grad_()
-        c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_dim).requires_grad_()
-        out, (hn, cn) = self.lstm(x, (h0.detach(), c0.detach()))
-        out = self.fc(out[:, -1, :]) 
+    
+    def init_hiddenState(self, bs):
+        return torch.ones(self.n_layers, bs, self.hidden_dim)
+
+    def forward(self, input):
+        input = input.unsqueeze(0) 
+        bs = input.shape[1]
+        hidden_state = self.init_hiddenState(bs).to(self.device)
+        cell_state = hidden_state
+        
+        out, _ = self.rnn(input, (hidden_state, cell_state))
+
+        out = out.contiguous().view(-1, self.hidden_dim)
+        out = self.act1(self.bn1(self.fc1(out)))
+        out = self.estimator(out)
+        
         return out
+    
+    def predict(self, input):
+        with torch.no_grad():
+            predictions = self.forward(input)
+        
+        return predictions
 
 ### Preprocess csv file into dictionary
 import pandas as pd
@@ -97,6 +122,7 @@ for k, v in tweets.items():
 				neg_fut_stocks.append(vs[-3:])
 
 ### linear regression code
+'''
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(pos_prev_stocks, pos_fut_stocks, random_state=1)
 reg = LinearRegression().fit(X_train, y_train)
@@ -158,16 +184,16 @@ for index in range(len(X_test)): # pos: 2151 | 1184 neg:  |
     plt.savefig('./neg_linear/pred'+str(index)+'.png')
     plt.clf()
 
-
+'''
 #### LSTM code
 from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(pos_prev_stocks, pos_fut_stocks, random_state=1)
 X_train, X_test, y_train, y_test = torch.tensor(X_train), torch.tensor(X_test), torch.tensor(y_train), torch.tensor(y_test)
 
 ### Training postive twitter model
-model_pos = LSTM(input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim, num_layers=num_layers)
+model_pos = LSTM(6, 80, 1, 0.1)
 criterion = torch.nn.MSELoss(reduction='mean')
-optimiser = torch.optim.Adam(model_pos.parameters(), lr=0.01)
+optimiser = torch.optim.Adam(model_pos.parameters(), lr=0.1)
 hist = np.zeros(num_epochs)
 lstm = []
 for t in range(num_epochs):
@@ -202,9 +228,9 @@ from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(neu_prev_stocks, neu_fut_stocks, random_state=1)
 X_train, X_test, y_train, y_test = torch.tensor(X_train), torch.tensor(X_test), torch.tensor(y_train), torch.tensor(y_test)
 
-model_neu = LSTM(input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim, num_layers=num_layers)
+model_neu = LSTM(6, 80, 1, 0.1)
 criterion = torch.nn.MSELoss(reduction='mean')
-optimiser = torch.optim.Adam(model_neu.parameters(), lr=0.01)
+optimiser = torch.optim.Adam(model_neu.parameters(), lr=0.1)
 hist = np.zeros(num_epochs)
 lstm = []
 for t in range(num_epochs):
@@ -239,9 +265,9 @@ from sklearn.model_selection import train_test_split
 X_train, X_test, y_train, y_test = train_test_split(neg_prev_stocks, neg_fut_stocks, random_state=1)
 X_train, X_test, y_train, y_test = torch.tensor(X_train), torch.tensor(X_test), torch.tensor(y_train), torch.tensor(y_test)
 
-model_neg = LSTM(input_dim=input_dim, hidden_dim=hidden_dim, output_dim=output_dim, num_layers=num_layers)
+model_neg = LSTM(6, 80, 1, 0.1)
 criterion = torch.nn.MSELoss(reduction='mean')
-optimiser = torch.optim.Adam(model_neg.parameters(), lr=0.01)
+optimiser = torch.optim.Adam(model_neg.parameters(), lr=0.1)
 hist = np.zeros(num_epochs)
 lstm = []
 for t in range(num_epochs):

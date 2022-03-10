@@ -13,20 +13,27 @@ The real world applications of this solution is that we can make money without s
 
 #### Get Started
 
+* To run the machine learning model
+
 ```bash
-**COMMAND TO RUN CODE**
+python3 ml.py
 ```
 
 #### Dependencies
 
 * Python >= 3.6
 * torch >= 0.4.1
-* **OTHER LIB**
+* numpy
+* monkeylearn
+* pandas
+* matplotlib
 
 #### File Structure
 
-* Visualization:
-* OTHER FILES:
+* Visualization: ./Data_visualization/Data_plot.ipynb
+* DataSet: ./data/newstock111.csv
+* machine learning module: ./ml.py
+* data preprocess: ./write crypto.py | ./write stock.py
 
 #### Team Member
 
