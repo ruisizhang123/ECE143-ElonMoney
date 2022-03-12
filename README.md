@@ -30,7 +30,7 @@ python3 ml.py
 
 #### File Structure
 
-* Visualization: ./Data_visualization/Data_plot.ipynb
+* Visualization: ./Data\_visualization/Data\_plot.ipynb
 * DataSet: ./data/newstock111.csv
 * machine learning module: ./ml.py
 * data preprocess: ./write\_crypto.py | ./write\_stock.py
@@ -42,3 +42,4 @@ python3 ml.py
 *  Yang-Jie Qin
 *  Ruisi Zhang
 *  Hsiao-Chun Li
+
